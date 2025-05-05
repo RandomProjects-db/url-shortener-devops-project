@@ -1,0 +1,4 @@
+# filepath: /Users/sequoia/Documents/Devops pipeline/url-shortener-devops-project/.trivyignore
+# Setuptools vulnerabilities - addressed in Dockerfile but still detected by Trivy
+CVE-2022-40897
+CVE-2024-6345

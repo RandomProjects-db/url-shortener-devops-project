@@ -3,7 +3,7 @@ import redis
 import os
 
 app = Flask(__name__)
-redis_client = redis.Redis(host='redis', port=6379, decode_responses=True)
+redis_client = redis.Redis(host='redis', port=6379, decode_responses=True, password=os.environ.get("REDIS_PASSWORD"))
 
 # Fix: Use environment variable for flexibility
 DOMAIN = os.getenv('DOMAIN', 'http://localhost:5050')  # Default to 5050
@@ -19,6 +19,10 @@ def shorten_url():
 def redirect(short_hash):
     url = redis_client.get(short_hash)
     return f'Redirecting to: {url}' if url else 'Not found', 200 if url else 404
+@app.after_request
+def add_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

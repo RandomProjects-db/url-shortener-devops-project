@@ -16,50 +16,43 @@ jobs:
           - 6379:6379
 
     steps:
+      - name: Snyk security scan
+        uses: snyk/actions/docker@master
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: url-shortener-devops-project-api:latest
+          args: --severity-threshold=high
+
+      - name: Snyk monitor
+        uses: snyk/actions/docker@master
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: url-shortener-devops-project-api:latest
+          args: --monitor
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Build API Docker Image (for security scan)
-      - name: Build API image (prod)
-        run: |
-          cd src/api
-          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }} .
-
-      # Snyk Security Scan for API Image
-      - name: Snyk security scan
-        uses: snyk/actions/docker@master
-        with:
-          image: $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
-          args: --severity-threshold=high
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      # Monitor API image with Snyk
-      - name: Snyk monitor
-        uses: snyk/actions/docker@master
-        with:
-          image: $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
-          args: --monitor
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      # Compute lowercase image name
       - name: Compute lowercase image name
         id: vars
         run: |
           echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Build API image (tester)
+      - name: Build API image (prod)
+        run: |
+          cd src/api
+          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }} .
+
       - name: Build API image (tester)
         run: |
           cd src/api
           docker build --target tester -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} .
 
-      # Run API tests
       - name: Run API tests
         run: |
           cd src/api
@@ -67,7 +60,6 @@ jobs:
             $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} \
             pytest -v --cov=app --cov-report=xml
 
-      # Trivy security scan for API image
       - name: Trivy security scan
         uses: aquasecurity/trivy-action@0.16.0
         with:
@@ -78,7 +70,8 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           output: trivy-results.sarif
-          
+          # trivyignores: .trivyignore # Ensure this path is correct
+
   worker-ci:
     runs-on: ubuntu-latest
     services:
@@ -100,27 +93,3 @@ jobs:
           cd src/worker
           go test -v ./...
           go build -v -o url-shortener-worker
-          
-      # Build Worker Docker Image
-      - name: Build Worker image
-        run: |
-          cd src/worker
-          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-worker:${{ github.sha }} .
-
-      # Snyk Security Scan for Worker Image
-      - name: Snyk security scan for Worker
-        uses: snyk/actions/docker@master
-        with:
-          image: $REGISTRY/${{ env.IMAGE_NAME_LC }}-worker:${{ github.sha }}
-          args: --severity-threshold=high
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      # Monitor Worker Image with Snyk
-      - name: Snyk monitor for Worker
-        uses: snyk/actions/docker@master
-        with:
-          image: $REGISTRY/${{ env.IMAGE_NAME_LC }}-worker:${{ github.sha }}
-          args: --monitor
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

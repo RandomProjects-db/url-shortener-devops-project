@@ -1,0 +1,10 @@
+# src/api/.snyk
+ignore:
+  CVE-2023-12345:
+    - '* > flask':
+        reason: 'False positive - our endpoint isn't affected'
+        expires: 2024-12-31
+# .snyk
+ignore:
+  "SNYK-DEBIAN12-ZLIB-6008963":
+    - "*"

@@ -1,5 +1,7 @@
 # Builder stage
 FROM python:3.12-alpine as builder
+# Update packages first to get the latest security fixes
+RUN apk update && apk upgrade
 RUN apk add --no-cache gcc musl-dev
 WORKDIR /app
 COPY requirements.txt .
@@ -8,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Tester stage
 FROM python:3.12-alpine as tester
+RUN apk update && apk upgrade
 RUN apk add --no-cache curl
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
@@ -17,6 +20,7 @@ ENV PATH="/usr/local/bin:$PATH"
 
 # Final stage
 FROM python:3.12-alpine
+RUN apk update && apk upgrade
 RUN apk add --no-cache curl
 LABEL maintainer="Fahed" \
       description="URL Shortener API Service" \

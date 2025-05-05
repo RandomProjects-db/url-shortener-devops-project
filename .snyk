@@ -1,10 +1,9 @@
-# src/api/.snyk
 ignore:
+  SNYK-DEBIAN12-ZLIB-6008963:
+    - '*':
+        reason: "No fix available for zlib in Debian 12, will update when patched"
+        expires: 2025-12-31
   CVE-2023-12345:
     - '* > flask':
-        reason: 'False positive - our endpoint isn't affected'
+        reason: "False positive - our endpoint isn't affected"
         expires: 2024-12-31
-# .snyk
-ignore:
-  "SNYK-DEBIAN12-ZLIB-6008963":
-    - "*"

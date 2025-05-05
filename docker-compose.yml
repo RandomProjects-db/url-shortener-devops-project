@@ -1,11 +1,23 @@
+
 services:
   api:
     build: ./src/api
     ports:
       - "5050:5000"
     environment:
-      - DOMAIN=http://localhost:5050  # Explicitly set the public URL
+      - DOMAIN=http://localhost:5050
     depends_on:
       - redis
+
   redis:
     image: redis:alpine
+
+  test:
+    build:
+      context: ./src/api
+      target: tester
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    command: pytest -v --cov=app --cov-report=term

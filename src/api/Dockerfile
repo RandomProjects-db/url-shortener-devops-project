@@ -2,6 +2,7 @@
 FROM python:3.9-slim as builder
 WORKDIR /app
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip setuptools>=70.0.0
 RUN pip install --user -r requirements.txt
 
 # Tester stage
@@ -10,7 +11,6 @@ WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 COPY . .
 RUN pip install --no-cache-dir pytest pytest-cov
-RUN pip install --no-cache-dir --upgrade pip setuptools>=70.0.0
 ENV PATH="/root/.local/bin:$PATH"
 
 # Final stage (for production API container)

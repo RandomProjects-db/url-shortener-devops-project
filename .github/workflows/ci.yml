@@ -16,22 +16,6 @@ jobs:
           - 6379:6379
 
     steps:
-      - name: Snyk security scan
-        uses: snyk/actions/docker@master
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: url-shortener-devops-project-api:latest
-          args: --severity-threshold=high
-
-      - name: Snyk monitor
-        uses: snyk/actions/docker@master
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          image: url-shortener-devops-project-api:latest
-          args: --monitor
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -60,6 +44,22 @@ jobs:
             $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} \
             pytest -v --cov=app --cov-report=xml
 
+      - name: Snyk security scan
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
+          args: --severity-threshold=high
+
+      - name: Snyk monitor
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
+          args: --monitor
+
       - name: Trivy security scan
         uses: aquasecurity/trivy-action@0.16.0
         with:
@@ -70,7 +70,6 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           output: trivy-results.sarif
-          # trivyignores: .trivyignore # Ensure this path is correct
 
   worker-ci:
     runs-on: ubuntu-latest
@@ -82,12 +81,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
-          
+
       - name: Build and Test Worker
         run: |
           cd src/worker

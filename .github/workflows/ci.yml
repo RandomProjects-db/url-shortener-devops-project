@@ -4,6 +4,7 @@ on: [push, pull_request]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME_LC: ${{ github.repository.lowercase }}
 
 jobs:
   api-ci:
@@ -13,49 +14,54 @@ jobs:
         image: redis:alpine
         ports:
           - 6379:6379
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Set lowercase image name
-      id: set-image-name
-      run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> $GITHUB_ENV
+      - name: Build API image (final)
+        run: |
+          cd src/api
+          docker build -t $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }} .
 
-    - name: Build API image
-      run: |
-        cd src/api
-        docker build -t $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }} .
+      - name: Build tester image (with pytest)
+        run: |
+          cd src/api
+          docker build --target tester -t $REGISTRY/${IMAGE_NAME_LC}-api-tester:${{ github.sha }} .
 
-    - name: Run API tests
-      run: |
-        cd src/api
-        docker run --network host -e REDIS_HOST=localhost \
-          $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }} \
-          pytest -v --cov=app --cov-report=xml
+      - name: Run API tests using tester image
+        run: |
+          cd src/api
+          docker run --network host -e REDIS_HOST=localhost \
+            $REGISTRY/${IMAGE_NAME_LC}-api-tester:${{ github.sha }} \
+            pytest -v --cov=app --cov-report=xml
 
-    - name: Trivy security scan
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
-        format: 'table'
-        exit-code: '1'
-        severity: 'CRITICAL,HIGH'
+      - name: Trivy security scan on final image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
 
   worker-ci:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
+      - uses: actions/checkout@v4
 
-    - name: Build Worker
-      run: |
-        cd src/worker
-        go build -v -o url-shortener-worker
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Initialize Go module (if needed)
+        run: |
+          cd src/worker
+          if [ ! -f go.mod ]; then go mod init github.com/${{ github.repository }}/worker; fi
+
+      - name: Build Worker
+        run: |
+          cd src/worker
+          go build -v -o url-shortener-worker

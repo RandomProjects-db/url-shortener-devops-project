@@ -2,9 +2,32 @@ name: CI Pipeline
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
     steps:
-      - uses: actions/checkout@v4
-      - name: Build API
-        run: docker-compose build api
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build API image
+        run: |
+          cd src/api
+          docker build -t url-shortener-api .
+          
+      - name: Run unit tests
+        run: |
+          cd src/api
+          docker run --network host -e REDIS_HOST=localhost url-shortener-api \
+            pytest -v --cov=app --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: src/api/coverage.xml

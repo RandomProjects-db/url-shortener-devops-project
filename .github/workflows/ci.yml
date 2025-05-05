@@ -22,7 +22,6 @@ jobs:
       - name: Compute lowercase image name
         id: vars
         run: |
-          # Lowercase the repo name
           echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
@@ -46,7 +45,7 @@ jobs:
             pytest -v --cov=app --cov-report=xml
 
       - name: Trivy security scan
-        uses: aquasecurity/trivy-action@v0.30.0
+        uses: aquasecurity/trivy-action@v0.60.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
           format: table

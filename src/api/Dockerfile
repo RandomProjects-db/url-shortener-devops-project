@@ -1,4 +1,3 @@
-# In src/api/Dockerfile
 FROM python:3.9-slim as builder
 WORKDIR /app
 COPY requirements.txt .

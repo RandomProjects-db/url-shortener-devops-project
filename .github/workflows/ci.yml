@@ -19,43 +19,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set lowercase image name
+      - name: Compute lowercase image name
         id: vars
-        run: echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        run: |
+          # Lowercase the repo name
+          echo "IMAGE_NAME_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build API image (production)
+      - name: Build API image (prod)
         run: |
           cd src/api
-          docker build -t $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }} .
+          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }} .
 
-      - name: Build API image (test stage)
+      - name: Build API image (tester)
         run: |
           cd src/api
-          docker build --target tester -t $REGISTRY/${IMAGE_NAME_LC}-api-tester:${{ github.sha }} .
+          docker build --target tester -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} .
 
       - name: Run API tests
         run: |
           cd src/api
           docker run --network host -e REDIS_HOST=localhost \
-            $REGISTRY/${IMAGE_NAME_LC}-api-tester:${{ github.sha }} \
+            $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} \
             pytest -v --cov=app --cov-report=xml
 
-      - name: Debug variables
-        run: |
-          echo "REGISTRY: $REGISTRY"
-          echo "IMAGE_NAME_LC: $IMAGE_NAME_LC"
-          echo "Image name: $REGISTRY/${IMAGE_NAME_LC}-api:${{ github.sha }}"
-
       - name: Trivy security scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.30.0
         with:
-          image-ref: $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
-          format: 'table'
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }}
+          format: table
           exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+          severity: CRITICAL,HIGH
 
   worker-ci:
     runs-on: ubuntu-latest

@@ -1,0 +1,11 @@
+services:
+  api:
+    build: ./src/api
+    ports:
+      - "5050:5000"
+    environment:
+      - DOMAIN=http://localhost:5050  # Explicitly set the public URL
+    depends_on:
+      - redis
+  redis:
+    image: redis:alpine

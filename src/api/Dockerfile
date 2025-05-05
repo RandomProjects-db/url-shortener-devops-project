@@ -1,6 +1,5 @@
 # Builder stage
 FROM python:3.12-alpine as builder
-# Update packages first to get the latest security fixes
 RUN apk update && apk upgrade
 RUN apk add --no-cache gcc musl-dev
 WORKDIR /app

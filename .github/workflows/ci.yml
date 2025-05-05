@@ -52,6 +52,7 @@ jobs:
           exit-code: '1'
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .trivyignore
 
   worker-ci:
     runs-on: ubuntu-latest

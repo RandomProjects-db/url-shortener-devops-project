@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+k8s/**/secret.yaml
 # Distribution / packaging
 .Python
 build/
@@ -171,3 +171,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+k8s/**/secret.yaml
+k8s/**/secret.yaml
+k8s/**/secret.yaml
+.env
+.Python

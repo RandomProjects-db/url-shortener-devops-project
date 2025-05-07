@@ -1,0 +1,25 @@
+name: CD Pipeline
+on:
+push:
+    branches: [ "main" ]
+
+jobs:
+deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # Install Helm
+    - name: Setup Helm
+        run: |
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+
+    # Deploy to Kubernetes
+    - name: Deploy
+        run: |
+        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -n monitoring
+        kubectl apply -f k8s/
+        env:
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}

@@ -7,6 +7,20 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init
+        run: |
+          cd infra/aws
+          terraform init
+      - name: Terraform Validate
+        run: |
+          cd infra/aws
+          terraform validate
+
   api-ci:
     runs-on: ubuntu-latest
     services:

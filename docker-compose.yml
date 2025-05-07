@@ -1,4 +1,3 @@
-
 services:
   worker:
     build: ./src/worker
@@ -6,27 +5,46 @@ services:
       - redis
     environment:
       REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-defaultpassword}  # Add password
+      
   api:
-    build: ./src/api
+    build:
+      context: .  # Build from project root
+      dockerfile: src/api/Dockerfile
     ports:
       - "5050:5000"
     environment:
       - DOMAIN=http://localhost:5050
+      - LD_LIBRARY_PATH=/usr/local/lib
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-defaultpassword}
+      - PATH=/usr/bin:/usr/local/bin:$PATH
+      - PYTHONPATH=/app:$PYTHONPATH
+      
+
     depends_on:
       - redis
 
   redis:
     image: redis:alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-defaultpassword}
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-defaultpassword}
+    volumes:
+      - redis_data:/data
 
   test:
     build:
-      context: ./src/api
+      context: .
+      dockerfile: src/api/Dockerfile
       target: tester
     environment:
       - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-defaultpassword}
+      - PATH=/usr/bin:/usr/local/bin:$PATH
+      - PYTHONPATH=/app:$PYTHONPATH
     depends_on:
       - redis
-    command: pytest -v --cov=app --cov-report=term
+    command: sh -c "cd src/api && python -m pytest -v --cov=app --cov-report=term"
+volumes:
+  redis_data:

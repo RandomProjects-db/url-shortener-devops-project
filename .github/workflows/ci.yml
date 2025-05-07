@@ -51,10 +51,9 @@ jobs:
 
       - name: Run API tests
         run: |
-          cd src/api
           docker run --network host -e REDIS_HOST=localhost \
             $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} \
-            pytest -v --cov=app --cov-report=xml
+            pytest -v src/api --cov=app --cov-report=xml
 
       - name: Snyk security scan
         uses: snyk/actions/docker@master

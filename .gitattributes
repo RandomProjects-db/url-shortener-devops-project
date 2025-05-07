@@ -1,2 +1,13 @@
-hash.asm linguist-language=Assembly
-hash.c linguist-language=C
+# Set language for Assembly files
+src/asm/hash.asm linguist-language=Assembly
+src/asm/hash.asm linguist-detectable=true
+
+# Set language for C files
+src/asm/wrapper.c linguist-language=C
+src/asm/wrapper.c linguist-detectable=true
+
+# Optional: If these files are being classified as generated/vendored, override that
+src/asm/*.asm linguist-generated=false
+src/asm/*.asm linguist-vendored=false
+src/asm/*.c linguist-generated=false
+src/asm/*.c linguist-vendored=false

@@ -43,8 +43,7 @@ jobs:
 
       - name: Build API image (prod)
         run: |
-          cd src/api
-          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }} .
+          docker build -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api:${{ github.sha }} -f src/api/Dockerfile .
 
       - name: Build API image (tester)
         run: |

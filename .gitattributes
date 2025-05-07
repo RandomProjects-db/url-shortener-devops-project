@@ -1,13 +1,11 @@
-# Set language for Assembly files
-src/asm/hash.asm linguist-language=Assembly
-src/asm/hash.asm linguist-detectable=true
+# Detect all .asm files in src/asm/ as Assembly
+src/asm/*.asm linguist-language=Assembly
+src/asm/*.asm linguist-detectable
 
-# Set language for C files
-src/asm/wrapper.c linguist-language=C
-src/asm/wrapper.c linguist-detectable=true
+# Detect all .c files in src/asm/ as C
+src/asm/*.c linguist-language=C
+src/asm/*.c linguist-detectable
 
-# Optional: If these files are being classified as generated/vendored, override that
-src/asm/*.asm linguist-generated=false
-src/asm/*.asm linguist-vendored=false
-src/asm/*.c linguist-generated=false
-src/asm/*.c linguist-vendored=false
+# Optional overrides (simplified wildcard syntax)
+src/asm/*.asm linguist-generated=false linguist-vendored=false
+src/asm/*.c linguist-generated=false linguist-vendored=false

@@ -47,8 +47,7 @@ jobs:
 
       - name: Build API image (tester)
         run: |
-          cd src/api
-          docker build --target tester -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} .
+          docker build --target tester -t $REGISTRY/${{ env.IMAGE_NAME_LC }}-api-tester:${{ github.sha }} -f src/api/Dockerfile .
 
       - name: Run API tests
         run: |

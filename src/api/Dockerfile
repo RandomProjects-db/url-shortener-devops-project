@@ -1,5 +1,5 @@
 # Builder stage
-FROM python:3.12-alpine as builder
+FROM python:3.14.0rc1-alpine as builder
 RUN apk update && apk upgrade
 RUN apk add --no-cache gcc musl-dev
 WORKDIR /app
@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Tester stage
-FROM python:3.12-alpine as tester
+FROM python:3.14.0rc1-alpine as tester
 RUN apk update && apk upgrade
 RUN apk add --no-cache curl
 WORKDIR /app
@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir pytest pytest-cov
 ENV PATH="/usr/local/bin:$PATH"
 
 # Final stage
-FROM python:3.12-alpine
+FROM python:3.14.0rc1-alpine
 RUN apk update && apk upgrade
 RUN apk add --no-cache curl
 LABEL maintainer="Fahed" \
